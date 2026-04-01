@@ -1,0 +1,388 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <title>Rumo</title>
+  <link rel="stylesheet" href="../css/main.css">
+</head>
+<body>
+
+<!-- 🧊 共通モーダル -->
+<div id="modal" class="modal" style="display:none;">
+  <div class="modal-content" id="modalContent"></div>
+</div>
+
+<!-- ============================= -->
+<!-- 1️⃣ ログイン / 新規登録 -->
+<!-- ============================= -->
+<div class="section" id="loginSection">
+  <h2>ログイン</h2>
+  <input id="loginUsername" type="text" placeholder="ユーザー名">
+  <input id="loginPassword" type="password" placeholder="パスワード">
+  <button class="btn" onclick="login()">ログイン</button>
+
+  <h2>新規登録</h2>
+  <input id="registerUsername" type="text" placeholder="ユーザー名">
+  <input id="registerPassword" type="password" placeholder="パスワード">
+  <button class="btn" onclick="register()" id="registerBtn" disabled>新規登録</button>
+  <div id="loginMessage" style="color:red; margin-top:5px;"></div>
+</div>
+
+<!-- 🔝 ヘッダー -->
+<div class="header">
+  <h2>Rumo</h2>
+  <div class="user" onclick="openProfile()">👤</div>
+</div>
+
+<!-- 🧭 ナビ -->
+<div class="nav">
+  <button onclick="showPage('chat')" style="position:relative;">
+    💬
+    <span id="chatBadge" class="badge" style="display:none;">0</span>
+  </button>
+  <button onclick="showPage('call')">📞</button>
+  <button onclick="showPage('post')">📝</button>
+  <button onclick="showPage('ranking')">🏆</button>
+</div>
+
+<!-- 📞 着信UI -->
+<div id="incomingCall" class="call-modal" style="display:none;">
+  <div class="call-box">
+    <h2>📞 着信中...</h2>
+    <p id="callerName">User</p>
+    <button onclick="acceptCall()">✅ 応答</button>
+    <button onclick="rejectCall()">❌ 拒否</button>
+  </div>
+</div>
+
+<!-- 📦 コンテンツ -->
+<div id="content">
+
+  <!-- 💬 チャット -->
+  <div id="chat" class="page">
+    <h3>チャット</h3>
+    <div id="messages"></div>
+    <input id="msg" placeholder="メッセージを入力">
+    <button onclick="sendMsg()">送信</button>
+  </div>
+
+  <!-- 📞 通話 -->
+  <div id="call" class="page" style="display:none;">
+    <h3>通話</h3>
+    <video id="local" autoplay muted></video>
+    <video id="remote" autoplay></video>
+    <div class="call-controls">
+      <button onclick="startCall()">発信</button>
+      <button onclick="toggleMute()">🎤</button>
+      <button onclick="toggleCamera()">📷</button>
+      <button onclick="endCall()">❌</button>
+    </div>
+  </div>
+
+  <!-- 📝 投稿 -->
+  <div id="post" class="page" style="display:none;">
+    <h3>投稿</h3>
+    <textarea id="postText" placeholder="投稿内容"></textarea>
+    <button onclick="createPost()">投稿</button>
+    <div id="posts"></div>
+  </div>
+
+  <!-- 🏆 ランキング -->
+  <div id="ranking" class="page" style="display:none;">
+    <h3>ランキング</h3>
+    <div id="rankList"></div>
+  </div>
+
+  <!-- 🔔 通知 -->
+  <div id="notification-container"></div>
+
+</div>
+
+<script src="/socket.io/socket.io.js"></script>
+<script src="../js/socket.js"></script>
+<script>
+let currentPage = "chat";
+let unreadCount = 0;
+let posts = [];
+let following = [];
+let peer, localStream;
+let incomingOffer = null;
+let callerId = null;
+let userId = "USER_ID";
+let username = "USER";
+
+// =========================
+// 👤 プロフィール・設定
+// =========================
+function openProfile(){
+  openModal(`
+    <h2>プロフィール</h2>
+    <p>ユーザー名: ${username}</p>
+    <button onclick="openSettings()">⚙️ 設定</button>
+    <button onclick="closeModal()">閉じる</button>
+  `);
+}
+
+function openSettings(){
+  openModal(`
+    <h2>設定</h2>
+    <button onclick="changeName()">名前変更</button>
+    <button onclick="closeModal()">閉じる</button>
+  `);
+}
+
+// =========================
+// 🔄 ページ切替
+// =========================
+function showPage(page){
+  document.querySelectorAll(".page").forEach(p => p.style.display = "none");
+  document.getElementById(page).style.display = "block";
+  currentPage = page;
+
+  if(page === "chat"){
+    unreadCount = 0;
+    updateBadge();
+  }
+}
+
+// =========================
+// 🔔 通知
+// =========================
+function showNotification(text){
+  const container = document.getElementById("notification-container");
+  const div = document.createElement("div");
+  div.className = "notification";
+  div.innerText = text;
+  container.appendChild(div);
+
+  setTimeout(()=>{ div.classList.add("show"); }, 10);
+  setTimeout(()=>{
+    div.classList.remove("show");
+    setTimeout(()=> div.remove(), 300);
+  }, 3000);
+}
+
+// =========================
+// 💬 チャット
+// =========================
+function sendMsg(){
+  const text = document.getElementById("msg").value.trim();
+  if(!text) return;
+  sendMessage({to:"TARGET_USER_ID", text});
+  document.getElementById("msg").value = "";
+}
+
+onMessage((data)=>{
+  const div = document.createElement("div");
+  div.innerText = data.text;
+  document.getElementById("messages").appendChild(div);
+
+  if(currentPage !== "chat"){
+    unreadCount++;
+    updateBadge();
+  }
+});
+
+function updateBadge(){
+  const badge = document.getElementById("chatBadge");
+  if(unreadCount>0){
+    badge.style.display="inline-block";
+    badge.innerText = unreadCount;
+  }else{
+    badge.style.display="none";
+  }
+}
+
+// =========================
+// 📞 通話
+// =========================
+async function startCall(){
+  localStream = await navigator.mediaDevices.getUserMedia({video:true,audio:true});
+  document.getElementById("local").srcObject = localStream;
+
+  peer = new RTCPeerConnection();
+  localStream.getTracks().forEach(track=>peer.addTrack(track, localStream));
+  peer.ontrack = e=>document.getElementById("remote").srcObject = e.streams[0];
+
+  const offer = await peer.createOffer();
+  await peer.setLocalDescription(offer);
+  sendOffer({to:"TARGET_USER_ID", offer});
+}
+
+onOffer(async (data)=>{
+  incomingOffer = data.offer;
+  callerId = data.from;
+  document.getElementById("incomingCall").style.display="flex";
+  document.getElementById("callerName").innerText = data.from;
+  showNotification("着信中...");
+});
+
+async function acceptCall(){
+  document.getElementById("incomingCall").style.display="none";
+
+  localStream = await navigator.mediaDevices.getUserMedia({video:true,audio:true});
+  document.getElementById("local").srcObject = localStream;
+
+  peer = new RTCPeerConnection();
+  localStream.getTracks().forEach(track=>peer.addTrack(track, localStream));
+  peer.ontrack = e=>document.getElementById("remote").srcObject = e.streams[0];
+
+  await peer.setRemoteDescription(incomingOffer);
+  const answer = await peer.createAnswer();
+  await peer.setLocalDescription(answer);
+
+  sendAnswer({to:callerId, answer});
+}
+
+function rejectCall(){
+  document.getElementById("incomingCall").style.display="none";
+  showNotification("通話を拒否しました");
+}
+
+let isMuted=false;
+function toggleMute(){
+  isMuted = !isMuted;
+  localStream?.getAudioTracks().forEach(track=>track.enabled=!isMuted);
+  showNotification(isMuted?"ミュートON":"ミュートOFF");
+}
+
+let cameraOff=false;
+function toggleCamera(){
+  cameraOff = !cameraOff;
+  localStream?.getVideoTracks().forEach(track=>track.enabled=!cameraOff);
+  showNotification(cameraOff?"カメラOFF":"カメラON");
+}
+
+function endCall(){
+  peer?.close(); peer=null;
+  localStream?.getTracks().forEach(track=>track.stop());
+  document.getElementById("local").srcObject=null;
+  document.getElementById("remote").srcObject=null;
+  showNotification("通話終了");
+}
+
+// =========================
+// 📝 投稿
+// =========================
+function createPost(){
+  const text = document.getElementById("postText").value.trim();
+  if(!text) return;
+
+  const post = {id:Date.now(), user:username, text:text, likes:0};
+  posts.push(post);
+  renderPosts();
+  sendPost(post);
+  document.getElementById("postText").value = "";
+}
+
+function renderPosts(){
+  const container = document.getElementById("posts");
+  container.innerHTML = "";
+  posts.forEach(post=>{
+    const div=document.createElement("div");
+    div.innerHTML = `<b>${post.user}</b><br>${post.text}<br>
+      ❤️ ${post.likes} <button onclick="likePost(${post.id})">いいね</button>
+      <button onclick="followUser('${post.user}')">フォロー</button><hr>`;
+    container.appendChild(div);
+  });
+}
+
+function likePost(id){
+  const post = posts.find(p=>p.id===id);
+  if(post){ post.likes++; renderPosts(); }
+}
+
+function followUser(user){
+  if(!following.includes(user)){
+    following.push(user);
+    showNotification(user + " をフォローしました");
+  } else showNotification("すでにフォロー済み");
+}
+
+// =========================
+// 🏆 ランキング
+// =========================
+function loadRanking(){
+  const list = document.getElementById("rankList");
+  list.innerHTML = `🥇 user1 - 1000pt<br>🥈 user2 - 800pt<br>🥉 user3 - 600pt`;
+}
+loadRanking();
+
+// =========================
+// 🧊 モーダル
+// =========================
+function openModal(html){
+  const modal=document.getElementById("modal");
+  const content=document.getElementById("modalContent");
+  content.innerHTML=html;
+  modal.style.display="flex";
+}
+
+function closeModal(){
+  document.getElementById("modal").style.display="none";
+}
+
+// =========================
+// 🔐 ログイン / 登録
+// =========================
+async function login(){
+  const username = document.getElementById("loginUsername").value.trim();
+  const password = document.getElementById("loginPassword").value.trim();
+  if(!username || !password) return alert("入力してください");
+
+  const res = await fetch("/api/login", {
+    method:"POST",
+    headers:{"Content-Type":"application/json"},
+    body:JSON.stringify({username,password})
+  });
+  const data = await res.json();
+
+  const msg = document.getElementById("loginMessage");
+  if(data.success){
+    localStorage.setItem("userId", data.userId);
+    msg.style.color="green";
+    msg.innerText="ログイン成功！招待コード入力へ進みます。";
+    document.getElementById("registerBtn").style.display="none";
+  } else{
+    msg.style.color="red";
+    msg.innerText="ログイン失敗：" + data.message;
+  }
+}
+
+async function register(){
+  const username = document.getElementById("registerUsername").value.trim();
+  const password = document.getElementById("registerPassword").value.trim();
+  if(!username || !password) return alert("入力してください");
+
+  const res = await fetch("/api/register", {
+    method:"POST",
+    headers:{"Content-Type":"application/json"},
+    body:JSON.stringify({username,password})
+  });
+  const data = await res.json();
+
+  if(data.success){
+    showNotification("登録成功！ログインしてください");
+    document.getElementById("registerBtn").disabled = true;
+  } else{
+    showNotification("登録失敗：" + data.message);
+  }
+}
+
+// =========================
+// ダミーSocket関数（実際はsocket.jsで実装）
+// =========================
+function sendMessage(msg){ console.log("sendMessage", msg); }
+function onMessage(cb){ /* socket受信 */ }
+function sendPost(post){ console.log("sendPost", post); }
+function sendOffer(data){ console.log("sendOffer", data); }
+function onOffer(cb){ /* socket受信 */ }
+function sendAnswer(data){ console.log("sendAnswer", data); }
+function onAnswer(cb){ /* socket受信 */ }
+function onNotification(cb){ /* socket受信 */ }
+function onPostLiked(cb){ /* socket受信 */ }
+function registerUser(id){ console.log("registerUser", id); }
+
+</script>
+</body>
+</html>

@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Rumo</title>
+</head>
+<body>
+  <script>
+    // 招待コードチェック（簡易）
+    const params = new URLSearchParams(location.search);
+    const invite = params.get("invite");
+
+    if(!invite){
+      location.href = "/pages/invite.html";
+    } else {
+      localStorage.setItem("inviteCode", invite);
+      location.href = "/pages/register.html";
+    }
+  </script>
+</body>
+</html>

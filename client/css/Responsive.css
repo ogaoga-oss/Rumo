@@ -1,0 +1,85 @@
+/* PC用 */
+.app {
+  display: flex;
+  height: 100vh;
+}
+
+/* モバイル */
+@media (max-width: 768px) {
+  .app {
+    flex-direction: column;
+  }
+}
+
+.sidebar {
+  width: 220px;
+  background: rgba(0,0,0,0.4);
+}
+
+/* スマホでは消す */
+@media (max-width: 768px) {
+  .sidebar {
+    display: none;
+  }
+}
+
+.bottom-nav {
+  display: none;
+}
+
+/* スマホで表示 */
+@media (max-width: 768px) {
+  .bottom-nav {
+    display: flex;
+    position: fixed;
+    bottom: 0;
+    width: 100%;
+    background: rgba(0,0,0,0.7);
+    justify-content: space-around;
+    padding: 10px 0;
+    backdrop-filter: blur(10px);
+  }
+
+  .bottom-nav button {
+    background: none;
+    font-size: 20px;
+  }
+}
+
+.content {
+  padding-bottom: 80px;
+}
+
+@media (max-width: 768px) {
+
+  body {
+    font-size: 14px;
+  }
+
+  button {
+    padding: 8px;
+    font-size: 14px;
+  }
+
+  input, textarea {
+    font-size: 16px; /* iPhoneズーム防止 */
+  }
+
+}
+
+.message {
+  max-width: 85%;
+  font-size: 14px;
+}
+
+
+#stories img {
+  width: 60px;
+  height: 60px;
+}
+
+
+function go(page) {
+  window.location.href = page;
+}
+

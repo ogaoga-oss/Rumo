@@ -1,0 +1,10 @@
+.fade-out {
+  animation: fadeOut 0.2s ease;
+}
+
+@keyframes fadeOut {
+  to {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+}

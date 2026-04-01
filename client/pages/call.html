@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <title>通話</title>
+</head>
+<body>
+  <h1>通話</h1>
+
+  <video id="local" autoplay muted></video>
+  <video id="remote" autoplay></video>
+
+  <br>
+  <button onclick="startCall()">発信</button>
+
+  <script src="/socket.io/socket.io.js"></script>
+  <script>
+    const socket = io();
+
+    let localStream;
+    let peer;
+
+    async function startCall(){
+      localStream = await navigator.mediaDevices.getUserMedia({
+        video: true,
+        audio: true
+      });
+
+      document.getElementById("local").srcObject = localStream;
+
+      peer = new RTCPeerConnection();
+
+      localStream.getTracks().forEach(track => {
+        peer.addTrack(track, localStream);
+      });
+
+      peer.ontrack = (e) => {
+        document.getElementById("remote").srcObject = e.streams[0];
+      };
+
+      const offer = await peer.createOffer();
+      await peer.setLocalDescription(offer);
+
+      socket.emit("offer", offer);
+    }
+
+    socket.on("offer", async (offer) => {
+      peer = new RTCPeerConnection();
+
+      localStream = await navigator.mediaDevices.getUserMedia({
+        video: true,
+        audio: true
+      });
+
+      document.getElementById("local").srcObject = localStream;
+
+      localStream.getTracks().forEach(track => {
+        peer.addTrack(track, localStream);
+      });
+
+      peer.ontrack = (e) => {
+        document.getElementById("remote").srcObject = e.streams[0];
+      };
+
+      await peer.setRemoteDescription(offer);
+
+      const answer = await peer.createAnswer();
+      await peer.setLocalDescription(answer);
+
+      socket.emit("answer", answer);
+    });
+
+    socket.on("answer", async (answer) => {
+      await peer.setRemoteDescription(answer);
+    });
+  </script>
+</body>
+</html>

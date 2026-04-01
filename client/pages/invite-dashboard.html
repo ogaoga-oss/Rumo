@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>招待コード管理</title>
+  <link rel="stylesheet" href="../css/dashboard.css">
+</head>
+<body>
+  <div class="container">
+    <h1>招待コード管理</h1>
+
+    <button id="generateCodeBtn">新しい招待コードを生成</button>
+
+    <h2>発行済み招待コード</h2>
+    <table id="inviteTable">
+      <thead>
+        <tr>
+          <th>コード</th>
+          <th>残り使用可能人数</th>
+          <th>状態</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+
+    <h2>招待ボーナス</h2>
+    <ul id="inviteBonusList"></ul>
+  </div>
+
+  <script src="/socket.io/socket.io.js"></script>
+  <script>
+    const userId = localStorage.getItem("userId");
+    const username = localStorage.getItem("username");
+    const socket = io({ query: { userId, username }});
+
+    const inviteTableBody = document.querySelector("#inviteTable tbody");
+    const inviteBonusList = document.getElementById("inviteBonusList");
+
+    // 招待コード生成（デモ）
+    document.getElementById("generateCodeBtn").addEventListener("click", ()=>{
+      const code = "INVITE-" + Math.random().toString(36).substring(2,8).toUpperCase();
+      const tr = document.createElement("tr");
+      tr.innerHTML = `<td>${code}</td><td>5</td><td>未使用</td>`;
+      inviteTableBody.appendChild(tr);
+      alert(`新しい招待コード生成: ${code}`);
+    });
+
+    // 招待ボーナス表示（デモ）
+    ["招待成功 → 100pt","ランキング1位 → プレミアム1日"].forEach(b=>{
+      const li = document.createElement("li");
+      li.textContent = b;
+      inviteBonusList.appendChild(li);
+    });
+  </script>
+</body>
+</html>

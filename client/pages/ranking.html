@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <title>ランキング</title>
+</head>
+<body>
+  <h1>招待ランキング</h1>
+
+  <ul id="ranking"></ul>
+
+  <script>
+    async function loadRanking(){
+      const res = await fetch("/api/ranking");
+      const data = await res.json();
+
+      const list = document.getElementById("ranking");
+      list.innerHTML = "";
+
+      data.forEach((u,i)=>{
+        const li = document.createElement("li");
+        li.textContent = `${i+1}位 ${u.username} - ${u.invites}人`;
+
+    // 👇自分だけ追加表示
+        if(u.username === myName && u.rank !== 1){
+          text += `（あと${u.diff}人で1位🔥）`;
+        }
+
+        if(u.rank === 1){
+          text += " 👑";
+        }
+
+        li.textContent = text;
+        list.appendChild(li);
+      });
+    }
+
+    loadRanking();
+  </script>
+
+    <script> src="/socket.io/socket.io.js"></script>
+
+<script>
+const socket = io();
+const myName = localStorage.getItem("username");
+
+// 通知表示
+function showNotification(text){
+  const div = document.createElement("div");
+  div.textContent = text;
+  div.style.position = "fixed";
+  div.style.bottom = "20px";
+  div.style.left = "50%";
+  div.style.transform = "translateX(-50%)";
+  div.style.background = "#ff4d4d";
+  div.style.color = "#fff";
+  div.style.padding = "10px 20px";
+  div.style.borderRadius = "10px";
+  div.style.zIndex = 9999;
+
+  document.body.appendChild(div);
+
+  setTimeout(()=>div.remove(), 3000);
+}
+
+// 順位ダウン通知
+socket.on("rankDown", (data) => {
+  if(data.username === myName){
+    showNotification(`⚠️ あなたは${data.newRank}位に落ちました`);
+  }
+});
+  </script>
+
+</body>
+</html>
+

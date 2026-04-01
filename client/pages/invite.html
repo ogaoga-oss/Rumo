@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html>
+<body>
+  <h1>招待コード入力</h1>
+
+  <input id="code">
+  <button onclick="go()">進む</button>
+
+  <script>
+    function go(){
+      const code = document.getElementById("code").value;
+      location.href = `/pages/register.html?invite=${code}`;
+    }
+  </script>
+</body>
+</html>

@@ -1,0 +1,36 @@
+body {
+  margin: 0;
+  background: black;
+}
+
+.call-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+video {
+  width: 300px;
+  margin: 10px;
+  background: #000;
+}
+
+.controls button {
+  padding: 10px;
+  margin: 5px;
+}
+
+.message {
+  animation: msgIn 0.2s ease;
+}
+
+@keyframes msgIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}

@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <title>登録</title>
+</head>
+<body>
+  <h1>登録（招待制）</h1>
+
+  <input id="invite" placeholder="招待コード">
+  <input id="username" placeholder="ユーザー名">
+  <input id="password" type="password" placeholder="パスワード">
+
+  <button onclick="register()">登録</button>
+
+  <script>
+    async function register(){
+      const inviteCode = document.getElementById("invite").value;
+      const username = document.getElementById("username").value;
+      const password = document.getElementById("password").value;
+
+      const res = await fetch("/api/auth/register", {
+        method:"POST",
+        headers:{ "Content-Type":"application/json" },
+        body: JSON.stringify({ username, password, inviteCode })
+      });
+
+      const data = await res.json();
+
+      if(data.success){
+        alert("登録成功");
+        location.href = "/pages/login.html";
+      } else {
+        alert(data.message);
+      }
+    }
+  </script>
+    <script>
+  const params = new URLSearchParams(location.search);
+  const invite = params.get("invite");
+  if(invite){
+    document.getElementById("invite").value = invite;
+  }
+</script>
+
+</body>
+</html>
+

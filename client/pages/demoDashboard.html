@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Rumo デモダッシュボード</title>
+<link rel="stylesheet" href="../css/main.css">
+<script src="../js/socket.js"></script>
+<script src="../js/dashboard.js"></script>
+</head>
+<body class="dashboard">
+
+  <header>
+    <h1>Rumo デモダッシュボード</h1>
+    <div id="premium-badge">一般</div>
+  </header>
+
+  <section id="points-section">
+    <h2>ポイント & コイン</h2>
+    <div id="points-display">0 pt</div>
+    <div id="coins-display">0 コイン</div>
+    <button id="convert-coin">ポイントをコインに変換</button>
+  </section>
+
+  <section id="missions-section">
+    <h2>ミッション</h2>
+    <ul id="missions-list"></ul>
+  </section>
+
+  <section id="ranking-section">
+    <h2>ランキング（トップ10）</h2>
+    <ol id="ranking-list"></ol>
+  </section>
+
+  <section id="actions-section">
+    <h2>アクション</h2>
+    <button id="simulate-post">投稿する（いいね250pt獲得）</button>
+    <button id="simulate-invite">友達を招待（100pt）</button>
+    <button id="simulate-message">メッセージ送信（5pt）</button>
+  </section>
+
+  <div id="toast-container"></div>
+
+</body>
+</html>

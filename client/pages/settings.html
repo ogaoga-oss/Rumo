@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>設定</title>
+  <link rel="stylesheet" href="../css/main.css">
+</head>
+<body>
+  <div class="container">
+    <h1>設定</h1>
+    <label>パスワード変更</label>
+    <input type="password" id="newPassword" placeholder="新しいパスワード">
+    <button id="changePasswordBtn">変更</button>
+    <hr>
+    <label>既読通知設定</label>
+    <select id="readReceipt">
+      <option value="on">ON</option>
+      <option value="off">OFF</option>
+    </select>
+    <button id="saveSettings">保存</button>
+  </div>
+
+  <script>
+    document.getElementById("changePasswordBtn").addEventListener("click", ()=>{
+      alert("パスワード変更完了（デモ）");
+    });
+    document.getElementById("saveSettings").addEventListener("click", ()=>{
+      alert("設定保存（デモ）");
+    });
+  </script>
+</body>
+</html>

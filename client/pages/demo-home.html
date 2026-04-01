@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Rumo デモ体験</title>
+  <link rel="stylesheet" href="../css/main.css">
+  <style>
+    body { font-family: sans-serif; background: linear-gradient(135deg,#4facfe,#00f2fe); color:#fff; text-align:center; }
+    .section { margin:30px; padding:20px; border-radius:15px; background:rgba(0,0,0,0.2); animation:fadeIn 1s ease forwards; opacity:0; }
+    button { margin:10px; padding:10px 20px; border:none; border-radius:10px; background:#fff; color:#333; font-weight:bold; cursor:pointer; transition:0.3s; }
+    button:hover { background:#f0f0f0; transform:scale(1.05); }
+    @keyframes fadeIn { to { opacity:1; } }
+  </style>
+</head>
+<body>
+  <h1>🎉 Rumo 完全デモ体験 🎉</h1>
+  <p>1週間お試しトライアル中！すべての機能を体験できます。</p>
+
+  <div class="section" style="animation-delay:0.2s;">
+    <h2>チャット & 通話</h2>
+    <button onclick="location.href='chat.html'">チャットを体験</button>
+    <button onclick="location.href='call.html'">通話を体験</button>
+  </div>
+
+  <div class="section" style="animation-delay:0.4s;">
+    <h2>ストーリー & 投稿</h2>
+    <button onclick="location.href='stories.html'">ストーリーを体験</button>
+  </div>
+
+  <div class="section" style="animation-delay:0.6s;">
+    <h2>友達管理 & 招待</h2>
+    <button onclick="location.href='friends.html'">友達リスト</button>
+    <button onclick="location.href='invite.html'">招待コード入力</button>
+    <button onclick="location.href='invite-dashboard.html'">招待管理</button>
+  </div>
+
+  <div class="section" style="animation-delay:0.8s;">
+    <h2>プロフィール & 設定</h2>
+    <button onclick="location.href='profile.html'">プロフィール</button>
+    <button onclick="location.href='settings.html'">設定</button>
+  </div>
+
+  <script>
+    // お試しトライアル1週間自動管理（デモ用）
+    const trialStart = localStorage.getItem("trialStart") || Date.now();
+    localStorage.setItem("trialStart", trialStart);
+    const now = Date.now();
+    const oneWeek = 7*24*60*60*1000;
+    if(now - trialStart > oneWeek){
+      alert("お試し期間が終了しました。プレミアム機能は利用できません（デモ）");
+    } else {
+      const daysLeft = Math.ceil((oneWeek-(now-trialStart))/(24*60*60*1000));
+      console.log(`お試し残り: ${daysLeft}日`);
+    }
+  </script>
+</body>
+</html>
