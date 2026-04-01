@@ -39,6 +39,9 @@ setInterval(() => {
   lastRanking = current.map(u => ({ id: u.id }));
 }, 5000);
 
+mongoose.connect(process.env.MONGO_URI)
+  .then(() => console.log("✅ MongoDB接続成功"))
+  .catch(err => console.log("❌ MongoDB接続失敗", err));
 
 
 // 👇これ追加（重要）
