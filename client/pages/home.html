@@ -325,49 +325,165 @@ function closeModal(){
 // =========================
 // 🔐 ログイン / 登録
 // =========================
+    git add .
+git commit -m "API接続"
+git push
+
+const API_URL = "https://rumo-r0k5.onrender.com";
+
+// =========================
+// 🔐 ログイン
+// =========================
 async function login(){
   const username = document.getElementById("loginUsername").value.trim();
   const password = document.getElementById("loginPassword").value.trim();
   if(!username || !password) return alert("入力してください");
 
-  const res = await fetch("/api/login", {
-    method:"POST",
-    headers:{"Content-Type":"application/json"},
-    body:JSON.stringify({username,password})
-  });
-  const data = await res.json();
+  try{
+    const res = await fetch(`${API_URL}/api/login`, {
+      method:"POST",
+      headers:{"Content-Type":"application/json"},
+      body: JSON.stringify({ username, password })
+    });
 
-  const msg = document.getElementById("loginMessage");
-  if(data.success){
-    localStorage.setItem("userId", data.userId);
-    msg.style.color="green";
-    msg.innerText="ログイン成功！招待コード入力へ進みます。";
-    document.getElementById("registerBtn").style.display="none";
-  } else{
-    msg.style.color="red";
-    msg.innerText="ログイン失敗：" + data.message;
+    const data = await res.json();
+    const msg = document.getElementById("loginMessage");
+
+    if(data.success){
+      localStorage.setItem("userId", data.userId);
+
+      msg.style.color = "green";
+      msg.innerText = "ログイン成功！";
+
+      // 次の画面へ（必要なら変更OK）
+      setTimeout(()=>{
+        location.href = "/pages/invite.html";
+      }, 800);
+
+    } else {
+      msg.style.color = "red";
+      msg.innerText = "ログイン失敗：" + data.message;
+    }
+
+  } catch(err){
+    console.error(err);
+    alert("サーバーに接続できません");
   }
 }
 
+// =========================
+// 🆕 新規登録
+// =========================
 async function register(){
   const username = document.getElementById("registerUsername").value.trim();
   const password = document.getElementById("registerPassword").value.trim();
   if(!username || !password) return alert("入力してください");
 
-  const res = await fetch("/api/register", {
-    method:"POST",
-    headers:{"Content-Type":"application/json"},
-    body:JSON.stringify({username,password})
-  });
-  const data = await res.json();
+  try{
+    const res = await fetch(`${API_URL}/api/register`, {
+      method:"POST",
+      headers:{"Content-Type":"application/json"},
+      body: JSON.stringify({ username, password })
+    });
 
-  if(data.success){
-    showNotification("登録成功！ログインしてください");
-    document.getElementById("registerBtn").disabled = true;
-  } else{
-    showNotification("登録失敗：" + data.message);
+    const data = await res.json();
+
+    if(data.success){
+      showNotification("登録成功！ログインしてください");
+
+      document.getElementById("registerBtn").disabled = true;
+
+      // 入力リセット
+      document.getElementById("registerUsername").value = "";
+      document.getElementById("registerPassword").value = "";
+
+    } else {
+      showNotification("登録失敗：" + data.message);
+    }
+
+  } catch(err){
+    console.error(err);
+    showNotification("サーバー接続エラー");
   }
 }
+
+
+// =========================
+// 🔐 ログイン
+// =========================
+async function login(){
+  const username = document.getElementById("loginUsername").value.trim();
+  const password = document.getElementById("loginPassword").value.trim();
+  if(!username || !password) return alert("入力してください");
+
+  try{
+    const res = await fetch(`${API_URL}/api/login`, {
+      method:"POST",
+      headers:{"Content-Type":"application/json"},
+      body: JSON.stringify({ username, password })
+    });
+
+    const data = await res.json();
+    const msg = document.getElementById("loginMessage");
+
+    if(data.success){
+      localStorage.setItem("userId", data.userId);
+
+      msg.style.color = "green";
+      msg.innerText = "ログイン成功！";
+
+      // 次の画面へ（必要なら変更OK）
+      setTimeout(()=>{
+        location.href = "/pages/invite.html";
+      }, 800);
+
+    } else {
+      msg.style.color = "red";
+      msg.innerText = "ログイン失敗：" + data.message;
+    }
+
+  } catch(err){
+    console.error(err);
+    alert("サーバーに接続できません");
+  }
+}
+
+// =========================
+// 🆕 新規登録
+// =========================
+async function register(){
+  const username = document.getElementById("registerUsername").value.trim();
+  const password = document.getElementById("registerPassword").value.trim();
+  if(!username || !password) return alert("入力してください");
+
+  try{
+    const res = await fetch(`${API_URL}/api/register`, {
+      method:"POST",
+      headers:{"Content-Type":"application/json"},
+      body: JSON.stringify({ username, password })
+    });
+
+    const data = await res.json();
+
+    if(data.success){
+      showNotification("登録成功！ログインしてください");
+
+      document.getElementById("registerBtn").disabled = true;
+
+      // 入力リセット
+      document.getElementById("registerUsername").value = "";
+      document.getElementById("registerPassword").value = "";
+
+    } else {
+      showNotification("登録失敗：" + data.message);
+    }
+
+  } catch(err){
+    console.error(err);
+    showNotification("サーバー接続エラー");
+  }
+}
+
 
 // =========================
 // ダミーSocket関数（実際はsocket.jsで実装）

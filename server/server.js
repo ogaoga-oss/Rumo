@@ -1,3 +1,4 @@
+const cors = require("cors");
 const express = require('express');
 const http = require('http');
 const { Server } = require('socket.io');
@@ -73,6 +74,11 @@ app.get("/api/me", auth, (req, res) => {
   const user = findUserById(req.user.id);
   res.json(user);
 });
+
+app.use(cors({
+  origin: "https://rumo-tawny.vercel.app",
+  credentials: true
+}));
 
 // デモ用メモリ
 let users = {};
