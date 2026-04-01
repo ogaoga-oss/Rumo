@@ -5,29 +5,12 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Rumo</title>
 
-  <style>
-    body {
-      font-family: sans-serif;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      height: 100vh;
-      margin: 0;
-      background: #0f172a;
-      color: white;
-    }
-    .box {
-      text-align: center;
-    }
-    .btn {
-      margin-top: 15px;
-      padding: 10px 20px;
-      border: none;
-      background: #38bdf8;
-      color: black;
-      cursor: pointer;
-      border-radius: 8px;
-    }
+ <style>
+    body { font-family: sans-serif; background: linear-gradient(135deg,#4facfe,#00f2fe); color:#fff; text-align:center; }
+    .section { margin:30px; padding:20px; border-radius:15px; background:rgba(0,0,0,0.2); animation:fadeIn 1s ease forwards; opacity:0; }
+    button { margin:10px; padding:10px 20px; border:none; border-radius:10px; background:#fff; color:#333; font-weight:bold; cursor:pointer; transition:0.3s; }
+    button:hover { background:#f0f0f0; transform:scale(1.05); }
+    @keyframes fadeIn { to { opacity:1; } }
   </style>
 </head>
 
