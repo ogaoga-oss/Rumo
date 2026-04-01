@@ -1,22 +1,34 @@
 /* 🌈 共通グラデーション */
 :root {
   --primary-gradient: linear-gradient(135deg, #4facfe, #00f2fe);
-  --primary-color: #4facfe; /* 必要に応じて単色も */
-  --secondary-color: #00f2fe;
   --text-color: #fff;
 }
 
-
-
+/* ===== 全体 ===== */
 body {
-  background: var(--primary-gradient);
-  font-family: "Helvetica Neue", sans-serif;
-  color: var(--text-color);
   margin: 0;
   padding: 0;
+  font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+  background: var(--primary-gradient);
+  color: var(--text-color);
+  text-align: center;
 }
 
+/* ===== セクション ===== */
+.section {
+  margin: 30px;
+  padding: 20px;
+  border-radius: 15px;
+  background: rgba(0,0,0,0.2);
+  animation: fadeIn 1s ease forwards;
+  opacity: 0;
+}
 
+@keyframes fadeIn {
+  to { opacity: 1; }
+}
+
+/* ===== 投稿 ===== */
 #posts div {
   background: rgba(255,255,255,0.1);
   border-radius: 15px;
@@ -24,48 +36,15 @@ body {
   margin-bottom: 10px;
 }
 
-/* モーダル */
-.modal-content,
-.call-box {
-  background: var(--primary-gradient);
-  color: var(--text-color);
-}
-
-/* 通話ボタン */
-.call-controls button {
-  background: rgba(255,255,255,0.2);
-  color: var(--text-color);
-}
-
-button, input, textarea {
-  border: none;
-  border-radius: 10px;
-  padding: 10px;
-  background: rgba(255,255,255,0.2);
-  color: var(--text-color);
-}
-
-input::placeholder, textarea::placeholder {
-  color: rgba(255,255,255,0.7);
-}
-
-
-body {
-  margin: 0;
-  font-family: -apple-system, BlinkMacSystemFont, sans-serif;
-  background: linear-gradient(135deg, #0f172a, #1e3a8a);
-  color: white;
-}
-
-/* 共通ボタン */
+/* ===== ボタン ===== */
 button {
-  background: linear-gradient(135deg, #3b82f6, #6366f1);
+  background: rgba(255,255,255,0.2);
   border: none;
-  padding: 10px 15px;
+  padding: 10px 20px;
   border-radius: 10px;
   color: white;
   cursor: pointer;
-  transition: 0.2s;
+  transition: 0.3s;
 }
 
 button:hover {
@@ -73,31 +52,23 @@ button:hover {
   opacity: 0.9;
 }
 
-/* 入力欄 */
+/* ===== 入力欄 ===== */
 input, textarea {
   width: 100%;
   padding: 10px;
   border-radius: 10px;
   border: none;
   margin: 5px 0;
-}
-
-.badge {
-  background: #ef4444;
+  background: rgba(255,255,255,0.2);
   color: white;
-  border-radius: 50%;
-  padding: 3px 7px;
-  font-size: 12px;
-  position: absolute;
-  top: 5px;
-  right: 10px;
 }
 
-.hidden {
-  display: none;
+input::placeholder,
+textarea::placeholder {
+  color: rgba(255,255,255,0.7);
 }
 
-/* 🔔 通知 */
+/* ===== 通知 ===== */
 #notification-container {
   position: fixed;
   top: 20px;
@@ -106,17 +77,15 @@ input, textarea {
 }
 
 .notification {
-  background: linear-gradient(135deg, #4facfe, #00f2fe);
-  color: white;
+  background: var(--primary-gradient);
   padding: 12px 16px;
   margin-top: 10px;
   border-radius: 12px;
-  min-width: 200px;
   box-shadow: 0 5px 20px rgba(0,0,0,0.2);
 
   opacity: 0;
   transform: translateY(-20px);
-  transition: all 0.3s ease;
+  transition: 0.3s;
 }
 
 .notification.show {
@@ -124,8 +93,7 @@ input, textarea {
   transform: translateY(0);
 }
 
-
-/* 🔴 未読バッジ */
+/* ===== バッジ ===== */
 .badge {
   background: red;
   color: white;
@@ -137,53 +105,8 @@ input, textarea {
   right: -5px;
 }
 
-
-/* 📞 着信モーダル */
-.call-modal {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: rgba(0,0,0,0.7);
-
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  z-index: 9999;
-}
-
-.call-box {
-  background: white;
-  padding: 30px;
-  border-radius: 20px;
-  text-align: center;
-}
-
-.call-box button {
-  margin: 10px;
-  padding: 10px 20px;
-  border: none;
-  border-radius: 10px;
-}
-
-.call-controls {
-  position: fixed;
-  bottom: 20px;
-  width: 100%;
-  text-align: center;
-}
-
-.call-controls button {
-  margin: 0 10px;
-  padding: 15px;
-  border-radius: 50%;
-  border: none;
-  font-size: 18px;
-}
-
-/* 🧊 モーダル背景 */
-.modal {
+/* ===== モーダル ===== */
+.modal, .call-modal {
   position: fixed;
   top: 0;
   left: 0;
@@ -194,29 +117,26 @@ input, textarea {
   display: flex;
   justify-content: center;
   align-items: center;
-
-  z-index: 9999;
 }
 
-/* 🧊 モーダル中身 */
-.modal-content {
-  background: linear-gradient(135deg, #4facfe, #00f2fe);
+.modal-content, .call-box {
+  background: var(--primary-gradient);
   padding: 20px;
   border-radius: 20px;
   width: 90%;
   max-width: 400px;
-
   color: white;
-  animation: pop 0.3s ease;
 }
 
-@keyframes pop {
-  from {
-    transform: scale(0.8);
-    opacity: 0;
-  }
-  to {
-    transform: scale(1);
-    opacity: 1;
-  }
+/* ===== 通話ボタン ===== */
+.call-controls {
+  position: fixed;
+  bottom: 20px;
+  width: 100%;
+}
+
+.call-controls button {
+  margin: 0 10px;
+  padding: 15px;
+  border-radius: 50%;
 }
