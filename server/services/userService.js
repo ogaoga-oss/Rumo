@@ -1,46 +1,57 @@
-const users = require("../models/User");
+const mongoose = require("mongoose");
+
+// ユーザースキーマ
+const userSchema = new mongoose.Schema({
+  username: { type: String, required: true },
+  points: { type: Number, default: 0 },
+  invites: { type: Number, default: 0 },
+}, { timestamps: true });
+
+const User = mongoose.model("User", userSchema);
 
 // ユーザー作成
-function createUser(user){
-  users.push(user);
+async function createUser(userData) {
+  const user = new User(userData);
+  await user.save();
+  return user;
 }
 
 // ユーザー取得
-function findUserById(id){
-  return users.find(u => u.id === id);
+async function findUserById(userId) {
+  return await User.findById(userId);
 }
-
-// 招待カウント
-function addInvite(userId){
-  const user = findUserById(userId);
-  if(user){
-    user.invites = (user.invites || 0) + 1;
-  }
-}
-
-function getRanking(){
-  return users
-    .sort((a,b)=>(b.invites||0)-(a.invites||0))
-    .slice(0,10)
-    .map(u => ({
-      id: u.id, // 👈追加
-      username: u.username,
-      invites: u.invites || 0
-    }));
-}
-
 
 // ポイント加算
-function addPoints(userId, points){
-  const user = findUserById(userId);
-  if(user){
-    user.points = (user.points || 0) + points;
-  }
+async function addPoints(userId, points = 1) {
+  return await User.findByIdAndUpdate(
+    userId,
+    { $inc: { points: points } },
+    { new: true }
+  );
+}
+
+// 招待加算
+async function addInvite(userId) {
+  return await User.findByIdAndUpdate(
+    userId,
+    { $inc: { invites: 1 } },
+    { new: true }
+  );
+}
+
+// ランキング上位10人取得
+async function getRanking() {
+  return await User.find()
+    .sort({ invites: -1 })
+    .limit(10)
+    .select("username invites"); // idは自動で含まれる
 }
 
 module.exports = {
+  User,
   createUser,
   findUserById,
   addPoints,
-  users
+  addInvite,
+  getRanking
 };

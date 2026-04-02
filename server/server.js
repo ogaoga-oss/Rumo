@@ -1,110 +1,114 @@
+const express = require("express");
+const http = require("http");
+const { Server } = require("socket.io");
+const path = require("path");
 const cors = require("cors");
-const express = require('express');
-const http = require('http');
-const { Server } = require('socket.io');
-const path = require('path');
-const mongoose = require('mongoose');
+const mongoose = require("mongoose");
+
+const { giveDailyRewards } = require("./services/dailyRewardService");
+const { addPoints, getRanking, findUserById, addInvite, createUser } = require("./services/userService");
+
+const socketHandler = require("./socket");
 
 const app = express();
 const server = http.createServer(app);
-const io = new Server(server);
+const io = new Server(server, {
+  cors: {
+    origin: "https://rumo-tawny.vercel.app",
+    credentials: true
+  }
+});
 
-const { giveDailyRewards } = require("./services/dailyRewardService");
-const { addPoints, users } = require("./services/userService"); // users はそのまま使う
-
-const socketHandler = require("./socket");
+// Socket.ioハンドラー
 socketHandler(io);
 
 let lastRanking = [];
 
+// MongoDB接続
+mongoose.connect(process.env.MONGO_URI)
+  .then(() => console.log("✅ MongoDB接続成功"))
+  .catch(err => console.log("❌ MongoDB接続失敗", err));
+
+// JSONパース
+app.use(express.json());
+
+// デイリー報酬
+app.use(async (req, res, next) => {
+  await giveDailyRewards();
+  next();
+});
+
+// フロント公開
+app.use(express.static(path.join(__dirname, "../client")));
+
+// ルーティング
+const authRoutes = require("./routes/auth");
+const rankingRoutes = require("./routes/ranking");
+const inviteRoutes = require("./routes/invite");
+
+app.use("/api/auth", authRoutes);
+app.use("/api/ranking", rankingRoutes);
+app.use("/api/invite", inviteRoutes);
+
+// 認証ミドルウェア
+const auth = require("../middleware/auth");
+
+app.get("/api/me", auth, async (req, res) => {
+  const user = await findUserById(req.user.id);
+  res.json(user);
+});
+
 // ランキングチェック（5秒ごと）
-setInterval(() => {
-  const current = [...users].sort((a,b)=>(b.invites||0)-(a.invites||0));
+setInterval(async () => {
+  const ranking = await getRanking();
 
-  current.forEach((user, index) => {
-    const oldIndex = lastRanking.findIndex(u => u.id === user.id);
+  ranking.forEach((user, index) => {
+    const oldIndex = lastRanking.findIndex(u => u.id === user._id.toString());
 
-    if(oldIndex !== -1 && oldIndex < index){
+    if (oldIndex !== -1 && oldIndex < index) {
+      // 順位下がった
       io.emit("rankDown", {
-        userId: user.id,
+        userId: user._id,
         username: user.username,
         newRank: index + 1
       });
     }
   });
 
-  lastRanking = current.map(u => ({ id: u.id }));
+  lastRanking = ranking.map(u => ({ id: u._id.toString() }));
 }, 5000);
 
-mongoose.connect(process.env.MONGO_URI)
-  .then(() => console.log("✅ MongoDB接続成功"))
-  .catch(err => console.log("❌ MongoDB接続失敗", err));
-
-// デモ用メモリ（名前を変更）
-let connectedUsers = {};
+// デモ用チャット（Socket.io）
 let messages = [];
+let connectedUsers = {};
 
-app.use((req, res, next) => {
-  giveDailyRewards(addPoints);
-  next();
-});
-
-app.use(express.json());
-app.use(express.static(path.join(__dirname, '../client')));
-
-const authRoutes = require("./routes/auth");
-app.use("/api/auth", authRoutes);
-
-const rankingRoutes = require("./routes/ranking");
-app.use("/api/ranking", rankingRoutes);
-
-const inviteRoutes = require("./routes/invite");
-app.use("/api/invite", inviteRoutes);
-
-const auth = require("../middleware/auth");
-const { findUserById } = require("../services/userService");
-
-app.get("/api/me", auth, (req, res) => {
-  const user = findUserById(req.user.id);
-  res.json(user);
-});
-
-app.use(cors({
-  origin: "https://rumo-tawny.vercel.app",
-  credentials: true
-}));
-
-// 接続
-io.on('connection', (socket) => {
+io.on("connection", (socket) => {
   console.log("接続:", socket.id);
 
-  socket.on('join', (user) => {
+  socket.on("join", (user) => {
     connectedUsers[socket.id] = user;
   });
 
-  socket.on('chatMessage', (msg) => {
+  socket.on("chatMessage", (msg) => {
     const user = connectedUsers[socket.id];
     const data = {
       username: user?.username || "名無し",
       message: msg
     };
     messages.push(data);
-    io.emit('chatMessage', data);
+    io.emit("chatMessage", data);
   });
 
-  socket.on("offer", (offer) => {
-    socket.broadcast.emit("offer", offer);
-  });
+  socket.on("offer", (offer) => socket.broadcast.emit("offer", offer));
+  socket.on("answer", (answer) => socket.broadcast.emit("answer", answer));
 
-  socket.on("answer", (answer) => {
-    socket.broadcast.emit("answer", answer);
-  });
-
-  socket.on('disconnect', () => {
+  socket.on("disconnect", () => {
     delete connectedUsers[socket.id];
   });
 });
 
-server.listen(8082, () => {
-  console.log("http://localhost:8082 で起動");
+// サーバー起動
+const PORT = process.env.PORT || 8082;
+server.listen(PORT, () => {
+  console.log(`http://localhost:${PORT} で起動`);
 });

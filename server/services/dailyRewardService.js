@@ -1,35 +1,34 @@
-const { getRanking, findUserById } = require("./userService");
+const { getRanking, findUserById, addPoints } = require("./userService");
 
 let lastRewardDate = null;
 
-// 日付チェック
-function isNewDay(){
+// 新しい日かチェック
+function isNewDay() {
   const today = new Date().toDateString();
-  if(lastRewardDate !== today){
+  if (lastRewardDate !== today) {
     lastRewardDate = today;
     return true;
   }
   return false;
 }
 
-// 報酬配布
-function giveDailyRewards(addPoints){
-  if(!isNewDay()) return;
+// デイリー報酬付与
+async function giveDailyRewards() {
+  if (!isNewDay()) return;
 
-  const ranking = getRanking();
-
-  if(ranking.length === 0) return;
+  const ranking = await getRanking();
+  if (!ranking || ranking.length === 0) return;
 
   // 上位3人に報酬
   const rewards = [1000, 500, 300];
 
-  ranking.slice(0,3).forEach((user, i) => {
-    const target = findUserById(user.id);
-    if(target){
-      addPoints(target.id, rewards[i]);
-      console.log(`🎁 ${target.username} に ${rewards[i]}pt`);
+  for (let i = 0; i < Math.min(3, ranking.length); i++) {
+    const user = await findUserById(ranking[i]._id);
+    if (user) {
+      await addPoints(user._id, rewards[i]);
+      console.log(`🎁 ${user.username} に ${rewards[i]}pt`);
     }
-  });
+  }
 }
 
 module.exports = { giveDailyRewards };
