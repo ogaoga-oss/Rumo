@@ -3,21 +3,19 @@ const express = require('express');
 const http = require('http');
 const { Server } = require('socket.io');
 const path = require('path');
+const mongoose = require('mongoose');
 
 const app = express();
 const server = http.createServer(app);
 const io = new Server(server);
+
 const { giveDailyRewards } = require("./services/dailyRewardService");
-const { addPoints } = require("./services/userService");
-const { users } = require("./services/userService");
+const { addPoints, users } = require("./services/userService"); // users はそのまま使う
 
 const socketHandler = require("./socket");
 socketHandler(io);
 
-
 let lastRanking = [];
-
-const newPost = new Post(data);
 
 // ランキングチェック（5秒ごと）
 setInterval(() => {
@@ -27,7 +25,6 @@ setInterval(() => {
     const oldIndex = lastRanking.findIndex(u => u.id === user.id);
 
     if(oldIndex !== -1 && oldIndex < index){
-      // 順位下がった
       io.emit("rankDown", {
         userId: user.id,
         username: user.username,
@@ -43,32 +40,26 @@ mongoose.connect(process.env.MONGO_URI)
   .then(() => console.log("✅ MongoDB接続成功"))
   .catch(err => console.log("❌ MongoDB接続失敗", err));
 
+// デモ用メモリ（名前を変更）
+let connectedUsers = {};
+let messages = [];
 
-// 👇これ追加（重要）
 app.use((req, res, next) => {
   giveDailyRewards(addPoints);
   next();
 });
 
 app.use(express.json());
-
-// フロント公開
 app.use(express.static(path.join(__dirname, '../client')));
 
-// 追加
 const authRoutes = require("./routes/auth");
-
-// 追加
 app.use("/api/auth", authRoutes);
 
 const rankingRoutes = require("./routes/ranking");
 app.use("/api/ranking", rankingRoutes);
 
-
-// 追加
 const inviteRoutes = require("./routes/invite");
 app.use("/api/invite", inviteRoutes);
-
 
 const auth = require("../middleware/auth");
 const { findUserById } = require("../services/userService");
@@ -83,20 +74,16 @@ app.use(cors({
   credentials: true
 }));
 
-// デモ用メモリ
-let users = {};
-let messages = [];
-
 // 接続
 io.on('connection', (socket) => {
   console.log("接続:", socket.id);
 
   socket.on('join', (user) => {
-    users[socket.id] = user;
+    connectedUsers[socket.id] = user;
   });
 
   socket.on('chatMessage', (msg) => {
-    const user = users[socket.id];
+    const user = connectedUsers[socket.id];
     const data = {
       username: user?.username || "名無し",
       message: msg
@@ -104,8 +91,6 @@ io.on('connection', (socket) => {
     messages.push(data);
     io.emit('chatMessage', data);
   });
-
-    io.on("connection", (socket) => {
 
   socket.on("offer", (offer) => {
     socket.broadcast.emit("offer", offer);
@@ -115,10 +100,8 @@ io.on('connection', (socket) => {
     socket.broadcast.emit("answer", answer);
   });
 
-});
-
   socket.on('disconnect', () => {
-    delete users[socket.id];
+    delete connectedUsers[socket.id];
   });
 });
 
